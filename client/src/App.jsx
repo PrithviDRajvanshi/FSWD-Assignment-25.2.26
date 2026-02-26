@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import ConnectionTest from './components/common/ConnectionTest';
 import NotFound from './pages/NotFound';
 import './App.css';
 
@@ -21,6 +22,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/connection-test" element={<ConnectionTest />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
