@@ -13,13 +13,33 @@ connectDB();
 // Initialize Express
 const app = express();
 
+// Port definition
+const PORT = process.env.PORT || 5000;
+
 // Middleware
-app.use(cors());
+// Configure CORS with CLIENT_URL from environment variables
+const corsOptions = {
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/users", userRoutes);
+
+// Test connection endpoint
+app.get("/api/connection-test", (req, res) => {
+    res.json({
+        success: true,
+        message: "Frontend-Backend connection is working!",
+        timestamp: new Date().toISOString(),
+        serverPort: PORT,
+        clientUrl: process.env.CLIENT_URL
+    });
+});
 
 // Root route
 app.get("/", (req, res) => {
@@ -27,7 +47,6 @@ app.get("/", (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
