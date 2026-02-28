@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 // @desc    Register a new user
@@ -135,8 +136,71 @@ const deleteUser = async (req, res) => {
     }
 };
 
+// @desc    Login a user and return JWT
+// @route   POST /api/users/login
+const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "Please provide email and password" });
+        }
+
+        const user = await User.findOne({ email }).select('+password');
+
+        if (!user) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        const payload = { id: user._id };
+        const token = jwt.sign(payload, process.env.JWT_SECRET || "dev_secret", { expiresIn: "1d" });
+
+        res.status(200).json({
+            token,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                createdAt: user.createdAt,
+            },
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+// @desc    Get current logged-in user
+// @route   GET /api/users/me
+const getMe = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Not authorized" });
+        }
+
+        const user = await User.findById(req.user.id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
 module.exports = {
     registerUser,
+    // auth
+    loginUser,
+    getMe,
+    // existing
     getUsers,
     getUserById,
     updateUser,
