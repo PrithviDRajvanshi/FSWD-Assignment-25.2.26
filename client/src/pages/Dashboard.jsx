@@ -1,71 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { user, loading, logout, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const stored = localStorage.getItem('user');
-
-    if (!token) {
+    // If loading is complete and user is not authenticated, redirect to login
+    if (!loading && !isAuthenticated()) {
       navigate('/login');
-      return;
     }
+  }, [loading, navigate, isAuthenticated]);
 
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch (err) {
-        // ignore
-      }
-    }
-
-    // try to fetch fresh user info
-    const fetchMe = async () => {
-      try {
-        const res = await fetch('/api/users/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!res.ok) {
-          // token might be invalid
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          navigate('/login');
-          return;
-        }
-
-        const data = await res.json();
-        setUser(data);
-        localStorage.setItem('user', JSON.stringify(data));
-      } catch (err) {
-        setError('Unable to fetch user info');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMe();
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-
+  // Show loading state while context is initializing
   if (loading) {
     return <div style={styles.container}>Loading...</div>;
   }
 
+  // If not authenticated, show nothing (redirect will happen in useEffect)
+  if (!isAuthenticated()) {
+    return null;
+  }
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <div style={styles.container}>
       <h1>Dashboard</h1>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
       {user ? (
         <div>
           <p>Welcome, <strong>{user.name}</strong></p>

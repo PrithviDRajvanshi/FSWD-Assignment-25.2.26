@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const validate = () => {
@@ -22,32 +23,12 @@ const Login = () => {
 
     if (!validate()) return;
 
-    setLoading(true);
-    try {
-      const res = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || 'Login failed');
-        setLoading(false);
-        return;
-      }
-
-      // store token and user
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
+    const result = await login(email, password);
+    if (result.success) {
       // redirect to dashboard
       navigate('/dashboard');
-    } catch (err) {
-      setError('Network error');
-    } finally {
-      setLoading(false);
+    } else {
+      setError(result.error || 'Login failed');
     }
   };
 

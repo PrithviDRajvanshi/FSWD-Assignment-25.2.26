@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import Home from './pages/Home';
@@ -13,22 +14,24 @@ import './App.css';
 function App() {
   return (
     <BrowserRouter>
-      <div className="app-container" style={{display: 'flex', flexDirection: 'column', minHeight: '100vh'}}>
-        <Header />
+      <AuthProvider>
+        <div className="app-container" style={{display: 'flex', flexDirection: 'column', minHeight: '100vh'}}>
+          <Header />
 
-        <main style={{flex: 1}}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/connection-test" element={<ConnectionTest />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
+          <main style={{flex: 1}}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/connection-test" element={<ConnectionTest />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
 
-        <Footer />
-      </div>
+          <Footer />
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
