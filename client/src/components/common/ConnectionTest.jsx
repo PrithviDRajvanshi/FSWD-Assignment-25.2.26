@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../../utils/api';
 import './ConnectionTest.css';
 
 function ConnectionTest() {
@@ -18,13 +19,9 @@ function ConnectionTest() {
       setError(null);
 
       // Use relative URL /api which will be proxied to backend
-      const response = await fetch('/api/connection-test');
+      const response = await api.get('/connection-test');
 
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-      }
-
-      const responseData = await response.json();
+      const responseData = response.data;
       setData(responseData);
       setStatus('success');
       setMessage('✅ Successfully connected to backend!');

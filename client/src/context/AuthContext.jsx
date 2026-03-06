@@ -1,4 +1,5 @@
 import React, { createContext, useReducer, useCallback, useEffect } from 'react';
+import api from '../utils/api';
 
 // Create the context
 export const AuthContext = createContext();
@@ -68,12 +69,10 @@ export const AuthProvider = ({ children }) => {
           user = JSON.parse(storedUser);
 
           // Verify token is still valid by calling /api/users/me
-          const res = await fetch('/api/users/me', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await api.get('/users/me');
 
-          if (res.ok) {
-            const freshUser = await res.json();
+          if (res.status === 200) {
+            const freshUser = res.data;
             user = freshUser;
             localStorage.setItem('user', JSON.stringify(freshUser));
           } else {
@@ -105,17 +104,9 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async (email, password) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const res = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await api.post('/users/login', { email, password });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      const data = res.data;
 
       // Store token and user
       localStorage.setItem('token', data.token);
