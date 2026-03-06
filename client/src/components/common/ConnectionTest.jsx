@@ -8,10 +8,6 @@ function ConnectionTest() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    testBackendConnection();
-  }, []);
-
   const testBackendConnection = async () => {
     try {
       setStatus('loading');
@@ -32,6 +28,10 @@ function ConnectionTest() {
       console.error('Connection test error:', err);
     }
   };
+
+  useEffect(() => {
+    testBackendConnection();
+  }, []);
 
   return (
     <div className="connection-test-container">
