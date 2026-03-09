@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
+const postRoutes = require("./routes/postRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -29,6 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
 
 // Test connection endpoint
 app.get("/api/connection-test", (req, res) => {

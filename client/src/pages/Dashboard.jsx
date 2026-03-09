@@ -1,10 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import api from '../utils/api';
+import PostCard from '../components/PostCard';
+import Pagination from '../components/Pagination';
+import './Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading, logout, isAuthenticated } = useAuth();
+
+  const [posts, setPosts] = useState([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalPosts: 0,
+    postsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // If loading is complete and user is not authenticated, redirect to login
@@ -13,9 +29,58 @@ const Dashboard = () => {
     }
   }, [loading, navigate, isAuthenticated]);
 
+  // Fetch user's posts
+  const fetchUserPosts = async (page = 1) => {
+    try {
+      setPostsLoading(true);
+      setError(null);
+      const response = await api.get(`/posts/user/my-posts?page=${page}&limit=10`);
+      
+      if (response.data.success) {
+        setPosts(response.data.data);
+        setPagination(response.data.pagination);
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch posts';
+      setError(errorMessage);
+    } finally {
+      setPostsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!loading && isAuthenticated()) {
+      fetchUserPosts(1);
+    }
+  }, [loading, isAuthenticated]);
+
+  const handlePreviousPage = () => {
+    if (pagination.hasPrevPage) {
+      fetchUserPosts(pagination.currentPage - 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (pagination.hasNextPage) {
+      fetchUserPosts(pagination.currentPage + 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const handlePageChange = (page) => {
+    fetchUserPosts(page);
+    window.scrollTo(0, 0);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   // Show loading state while context is initializing
   if (loading) {
-    return <div style={styles.container}>Loading...</div>;
+    return <div className="dashboard-container" style={{ textAlign: 'center' }}>Loading...</div>;
   }
 
   // If not authenticated, show nothing (redirect will happen in useEffect)
@@ -23,38 +88,79 @@ const Dashboard = () => {
     return null;
   }
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
   return (
-    <div style={styles.container}>
-      <h1>Dashboard</h1>
-      {user ? (
-        <div>
-          <p>Welcome, <strong>{user.name}</strong></p>
-          <p>Email: {user.email}</p>
-          <p>Member since: {new Date(user.createdAt).toLocaleDateString()}</p>
-          <button onClick={handleLogout} style={styles.logout}>Logout</button>
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <div className="user-info">
+          <h1>Dashboard</h1>
+          {user ? (
+            <div className="user-details">
+              <p>Welcome, <strong>{user.name}</strong></p>
+              <p>Email: {user.email}</p>
+              <p>Member since: {new Date(user.createdAt).toLocaleDateString()}</p>
+            </div>
+          ) : (
+            <p>No user information available.</p>
+          )}
         </div>
-      ) : (
-        <p>No user information available.</p>
-      )}
+
+        <div className="dashboard-actions">
+          <button className="btn btn-primary" onClick={() => navigate('/create-post')}>
+            + Create New Post
+          </button>
+          <button className="btn btn-logout" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <div className="posts-section">
+        <h2>Your Posts</h2>
+
+        {error && <div className="alert alert-error">{error}</div>}
+
+        {postsLoading ? (
+          <div className="loading-state">Loading your posts...</div>
+        ) : posts.length === 0 ? (
+          <div className="empty-state">
+            <p>You haven't created any posts yet.</p>
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate('/create-post')}
+            >
+              Create Your First Post
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="posts-info">
+              <p>
+                Showing {pagination.currentPage === 1 ? 1 : (pagination.currentPage - 1) * pagination.postsPerPage + 1} to{' '}
+                {Math.min(pagination.currentPage * pagination.postsPerPage, pagination.totalPosts)} of{' '}
+                {pagination.totalPosts} posts
+              </p>
+            </div>
+
+            <div className="posts-list">
+              {posts.map((post) => (
+                <PostCard key={post._id} post={post} />
+              ))}
+            </div>
+
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              hasNextPage={pagination.hasNextPage}
+              hasPrevPage={pagination.hasPrevPage}
+              onPrevious={handlePreviousPage}
+              onNext={handleNextPage}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    padding: '40px 20px',
-    textAlign: 'center',
-  },
-  logout: {
-    marginTop: 12,
-    padding: '8px 12px',
-    cursor: 'pointer'
-  }
 };
 
 export default Dashboard;

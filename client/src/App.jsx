@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import CreatePost from './pages/CreatePost';
 import ConnectionTest from './components/common/ConnectionTest';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -26,6 +27,7 @@ function App() {
               <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
               <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/create-post" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
               <Route path="/connection-test" element={<ConnectionTest />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
