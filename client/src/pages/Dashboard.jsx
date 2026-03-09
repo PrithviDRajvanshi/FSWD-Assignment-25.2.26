@@ -48,6 +48,48 @@ const Dashboard = () => {
     }
   };
 
+  // Handle post deletion with optimistic updates
+  const handleDeletePost = async (postId) => {
+    try {
+      // Optimistic update: remove post from UI immediately
+      const updatedPosts = posts.filter(post => post._id !== postId);
+      setPosts(updatedPosts);
+
+      // Update pagination if needed
+      const newTotalPosts = pagination.totalPosts - 1;
+      const newTotalPages = Math.ceil(newTotalPosts / pagination.postsPerPage);
+      
+      if (pagination.currentPage > newTotalPages && newTotalPages > 0) {
+        // If we're on a page that no longer exists, go to the last page
+        fetchUserPosts(newTotalPages);
+        return;
+      }
+
+      // Update pagination metadata
+      setPagination(prev => ({
+        ...prev,
+        totalPosts: newTotalPosts,
+        totalPages: newTotalPages,
+        hasNextPage: pagination.currentPage < newTotalPages,
+      }));
+
+      // Make API call
+      await api.delete(`/posts/${postId}`);
+      
+    } catch (err) {
+      // Revert optimistic update on error
+      fetchUserPosts(pagination.currentPage);
+      
+      const errorMessage = err.response?.data?.message || 'Failed to delete post';
+      setError(errorMessage);
+    }
+  };
+
+  // Handle post edit
+  const handleEditPost = (postId) => {
+    navigate(`/edit-post/${postId}`);
+  };
+
   useEffect(() => {
     if (!loading && isAuthenticated()) {
       fetchUserPosts(1);
@@ -143,7 +185,13 @@ const Dashboard = () => {
 
             <div className="posts-list">
               {posts.map((post) => (
-                <PostCard key={post._id} post={post} />
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  currentUser={user}
+                  onDelete={handleDeletePost}
+                  onEdit={handleEditPost}
+                />
               ))}
             </div>
 
