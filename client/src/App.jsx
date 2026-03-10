@@ -1,5 +1,9 @@
+// eslint-disable no-unused-vars
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars
+import { ToastContainer as ToastComp } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
@@ -21,6 +25,9 @@ function App() {
       <AuthProvider>
         <div className="app-container" style={{display: 'flex', flexDirection: 'column', minHeight: '100vh'}}>
           <Header />
+          {/* global toast container */}
+          {/* eslint-disable-next-line no-unused-vars */}
+          <ToastComp position="top-right" autoClose={3000} hideProgressBar={false} />
 
           <main style={{flex: 1}}>
             <Routes>

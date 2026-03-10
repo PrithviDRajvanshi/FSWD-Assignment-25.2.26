@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const ErrorResponse = require("../utils/errorResponse");
 
 // @desc    Register a new user
 // @route   POST /api/users/register
@@ -11,13 +12,13 @@ const registerUser = async (req, res) => {
 
         // Check for missing fields
         if (!name || !email || !password) {
-            return res.status(400).json({ message: "Please provide all fields" });
+            return next(new ErrorResponse("Please provide all fields", 400));
         }
 
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ message: "User with this email already exists" });
+            return next(new ErrorResponse("User with this email already exists", 400));
         }
 
         // Hash password
@@ -40,49 +41,53 @@ const registerUser = async (req, res) => {
             updatedAt: user.updatedAt,
         });
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
+        // duplicate key error
+        if (error.code === 11000) {
+            return next(new ErrorResponse("Email already in use", 400));
+        }
+        next(error);
     }
 };
 
 // @desc    Get all users
 // @route   GET /api/users
-const getUsers = async (req, res) => {
+const getUsers = async (req, res, next) => {
     try {
         const users = await User.find();
         res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
+        next(error);
     }
 };
 
 // @desc    Get a user by ID
 // @route   GET /api/users/:id
-const getUserById = async (req, res) => {
+const getUserById = async (req, res, next) => {
     try {
         // Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ message: "Invalid user ID" });
+            return next(new ErrorResponse("Invalid user ID", 400));
         }
 
         const user = await User.findById(req.params.id);
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return next(new ErrorResponse("User not found", 404));
         }
 
         res.status(200).json(user);
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
+        next(error);
     }
 };
 
 // @desc    Update a user
 // @route   PUT /api/users/:id
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
     try {
         // Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ message: "Invalid user ID" });
+            return next(new ErrorResponse("Invalid user ID", 400));
         }
 
         const { name, email, password } = req.body;
@@ -103,59 +108,59 @@ const updateUser = async (req, res) => {
         });
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return next(new ErrorResponse("User not found", 404));
         }
 
         res.status(200).json(user);
     } catch (error) {
         if (error.code === 11000) {
-            return res.status(400).json({ message: "Email already in use" });
+            return next(new ErrorResponse("Email already in use", 400));
         }
-        res.status(500).json({ message: "Server error", error: error.message });
+        next(error);
     }
 };
 
 // @desc    Delete a user
 // @route   DELETE /api/users/:id
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
     try {
         // Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ message: "Invalid user ID" });
+            return next(new ErrorResponse("Invalid user ID", 400));
         }
 
         const user = await User.findByIdAndDelete(req.params.id);
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return next(new ErrorResponse("User not found", 404));
         }
 
         res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
+        next(error);
     }
 };
 
 // @desc    Login a user and return JWT
 // @route   POST /api/users/login
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: "Please provide email and password" });
+            return next(new ErrorResponse("Please provide email and password", 400));
         }
 
         const user = await User.findOne({ email }).select('+password');
 
         if (!user) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return next(new ErrorResponse("Invalid credentials", 401));
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return next(new ErrorResponse("Invalid credentials", 401));
         }
 
         const payload = { id: user._id };
@@ -171,27 +176,27 @@ const loginUser = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
+        next(error);
     }
 };
 
 // @desc    Get current logged-in user
 // @route   GET /api/users/me
-const getMe = async (req, res) => {
+const getMe = async (req, res, next) => {
     try {
         if (!req.user) {
-            return res.status(401).json({ message: "Not authorized" });
+            return next(new ErrorResponse("Not authorized", 401));
         }
 
         const user = await User.findById(req.user.id).select("-password");
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return next(new ErrorResponse("User not found", 404));
         }
 
         res.status(200).json(user);
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
+        next(error);
     }
 };
 

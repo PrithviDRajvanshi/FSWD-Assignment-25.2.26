@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { toast } from 'react-toastify';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,7 +29,9 @@ const Login = () => {
       // redirect to dashboard
       navigate('/dashboard');
     } else {
-      setError(result.error || 'Login failed');
+      const msg = result.error || 'Login failed';
+      setError(msg);
+      toast.error(msg);
     }
   };
 

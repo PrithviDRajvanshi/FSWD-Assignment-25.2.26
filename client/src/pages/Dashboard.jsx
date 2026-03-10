@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../utils/api';
+import { toast } from 'react-toastify';
 import PostCard from '../components/PostCard';
 import Pagination from '../components/Pagination';
 import './Dashboard.css';
@@ -43,6 +44,7 @@ const Dashboard = () => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to fetch posts';
       setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setPostsLoading(false);
     }
@@ -82,6 +84,7 @@ const Dashboard = () => {
       
       const errorMessage = err.response?.data?.message || 'Failed to delete post';
       setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 

@@ -120,7 +120,8 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (err) {
       dispatch({ type: 'SET_LOADING', payload: false });
-      return { success: false, error: err.message };
+      const message = err.response?.data?.message || err.message;
+      return { success: false, error: message };
     }
   }, []);
 

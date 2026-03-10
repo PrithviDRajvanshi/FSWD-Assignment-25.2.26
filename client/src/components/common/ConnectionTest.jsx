@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
+import { toast } from 'react-toastify';
 import './ConnectionTest.css';
 
 function ConnectionTest() {
@@ -24,7 +25,9 @@ function ConnectionTest() {
     } catch (err) {
       setStatus('error');
       setMessage('❌ Failed to connect to backend');
-      setError(err.message);
+      const msg = err.response?.data?.message || err.message;
+      setError(msg);
+      toast.error(msg);
       console.error('Connection test error:', err);
     }
   };
@@ -62,6 +65,20 @@ function ConnectionTest() {
 
         <button onClick={testBackendConnection} className="retry-btn">
           Retry Connection
+        </button>
+        <button
+          className="retry-btn"
+          style={{ marginLeft: '8px' }}
+          onClick={async () => {
+            try {
+              await api.get('/test-error');
+            } catch (err) {
+              const msg = err.response?.data?.message || err.message;
+              toast.error(msg);
+            }
+          }}
+        >
+          Trigger Backend Error
         </button>
       </div>
     </div>

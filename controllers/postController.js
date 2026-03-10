@@ -1,18 +1,17 @@
 const mongoose = require("mongoose");
 const Post = require("../models/Post");
+const ErrorResponse = require("../utils/errorResponse");
 
 // @desc    Create a new post
 // @route   POST /api/posts
 // @access  Private (requires authentication)
-const createPost = async (req, res) => {
+const createPost = async (req, res, next) => {
     try {
         const { title, description, content, tags } = req.body;
 
         // Validate required fields
         if (!title || !description || !content) {
-            return res
-                .status(400)
-                .json({ message: "Please provide title, description, and content" });
+            return next(new ErrorResponse("Please provide title, description, and content", 400));
         }
 
         // Get user ID from authenticated request
@@ -36,18 +35,14 @@ const createPost = async (req, res) => {
             data: post,
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: error.message,
-        });
+        next(error);
     }
 };
 
 // @desc    Get all posts with pagination
 // @route   GET /api/posts
 // @access  Public
-const getAllPosts = async (req, res) => {
+const getAllPosts = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -81,18 +76,14 @@ const getAllPosts = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: error.message,
-        });
+        next(error);
     }
 };
 
 // @desc    Get user's own posts with pagination
 // @route   GET /api/posts/user/my-posts
 // @access  Private (requires authentication)
-const getUserPosts = async (req, res) => {
+const getUserPosts = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -103,7 +94,7 @@ const getUserPosts = async (req, res) => {
 
         // Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: "Invalid user ID" });
+            return next(new ErrorResponse("Invalid user ID", 400));
         }
 
         // Get total count for this user's posts
@@ -134,30 +125,26 @@ const getUserPosts = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: error.message,
-        });
+        next(error);
     }
 };
 
 // @desc    Get a single post by ID
 // @route   GET /api/posts/:id
 // @access  Public
-const getPostById = async (req, res) => {
+const getPostById = async (req, res, next) => {
     try {
         const { id } = req.params;
 
         // Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid post ID" });
+            return next(new ErrorResponse("Invalid post ID", 400));
         }
 
         const post = await Post.findById(id).populate("author", "name email");
 
         if (!post) {
-            return res.status(404).json({ message: "Post not found" });
+            return next(new ErrorResponse("Post not found", 404));
         }
 
         res.status(200).json({
@@ -165,39 +152,33 @@ const getPostById = async (req, res) => {
             data: post,
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: error.message,
-        });
+        next(error);
     }
 };
 
 // @desc    Update a post
 // @route   PUT /api/posts/:id
 // @access  Private (requires authentication)
-const updatePost = async (req, res) => {
+const updatePost = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { title, description, content, tags } = req.body;
 
         // Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid post ID" });
+            return next(new ErrorResponse("Invalid post ID", 400));
         }
 
         // Find the post
         const post = await Post.findById(id);
 
         if (!post) {
-            return res.status(404).json({ message: "Post not found" });
+            return next(new ErrorResponse("Post not found", 404));
         }
 
         // Check if user is the post author
         if (post.author.toString() !== req.user.id) {
-            return res
-                .status(403)
-                .json({ message: "Not authorized to update this post" });
+            return next(new ErrorResponse("Not authorized to update this post", 403));
         }
 
         // Update fields
@@ -215,38 +196,32 @@ const updatePost = async (req, res) => {
             data: post,
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: error.message,
-        });
+        next(error);
     }
 };
 
 // @desc    Delete a post
 // @route   DELETE /api/posts/:id
 // @access  Private (requires authentication)
-const deletePost = async (req, res) => {
+const deletePost = async (req, res, next) => {
     try {
         const { id } = req.params;
 
         // Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid post ID" });
+            return next(new ErrorResponse("Invalid post ID", 400));
         }
 
         // Find the post
         const post = await Post.findById(id);
 
         if (!post) {
-            return res.status(404).json({ message: "Post not found" });
+            return next(new ErrorResponse("Post not found", 404));
         }
 
         // Check if user is the post author
         if (post.author.toString() !== req.user.id) {
-            return res
-                .status(403)
-                .json({ message: "Not authorized to delete this post" });
+            return next(new ErrorResponse("Not authorized to delete this post", 403));
         }
 
         await Post.findByIdAndDelete(id);
@@ -256,11 +231,7 @@ const deletePost = async (req, res) => {
             message: "Post deleted successfully",
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: error.message,
-        });
+        next(error);
     }
 };
 

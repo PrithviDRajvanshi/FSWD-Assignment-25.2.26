@@ -1,8 +1,18 @@
-# Pull Request: CORS & Vite Proxy Configuration
+# Pull Request: Full-Stack Error Handling
 
 ## Description
 
-This PR implements Cross-Origin Resource Sharing (CORS) configuration on the backend and Vite proxy setup on the frontend to enable proper frontend-backend communication in development and production environments.
+This PR adds centralized error handling to the Express backend alongside consistent error responses, and integrates toast notifications on the React frontend. The goal is to provide clear user feedback when API calls fail and ensure a smooth user experience.
+
+Changes include:
+- Global Express error middleware (`utils/errorResponse.js` and `server.js`)
+- Routes and controllers updated to forward errors via `next()`
+- Intentional failure endpoint (`/api/test-error`) for demo purposes
+- Frontend installation/config of `react-toastify` with a global `ToastContainer`
+- API calls wrapped with `try...catch` blocks and toasts upon catch
+- Example button on ConnectionTest component to trigger backend error
+
+---
 
 ## Problem Statement
 

@@ -48,6 +48,22 @@ app.get("/", (req, res) => {
     res.json({ message: "Welcome to the Creator's Platform API" });
 });
 
+// Route used to intentionally trigger an error for demonstration
+app.get("/api/test-error", (req, res, next) => {
+    const err = new Error("Intentional test error");
+    err.statusCode = 400;
+    next(err);
+});
+
+// global error handler (must come after all routes)
+app.use((err, req, res, next) => {
+    // log for debugging, but don't expose stack to client
+    console.error(err.stack);
+    const statusCode = err.statusCode || 500;
+    const message = err.message || "Server Error";
+    res.status(statusCode).json({ success: false, message });
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { toast } from 'react-toastify';
 import './CreatePost.css';
 
 const CreatePost = () => {
@@ -72,6 +73,7 @@ const CreatePost = () => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to create post';
       setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
