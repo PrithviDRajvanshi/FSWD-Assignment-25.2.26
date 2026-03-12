@@ -1,6 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
@@ -64,7 +66,24 @@ app.use((err, req, res, next) => {
     res.status(statusCode).json({ success: false, message });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Create HTTP server and integrate Socket.io
+const httpServer = createServer(app);
+
+// re-use the same CORS options from Express for socket.io
+const io = new Server(httpServer, {
+    cors: corsOptions
+});
+
+// Handle socket connections
+io.on('connection', (socket) => {
+    console.log(`Socket connected: ${socket.id}`);
+
+    socket.on('disconnect', (reason) => {
+        console.log(`Socket disconnected: ${socket.id} (reason: ${reason})`);
+    });
+});
+
+// Start HTTP server (replaces app.listen)
+httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

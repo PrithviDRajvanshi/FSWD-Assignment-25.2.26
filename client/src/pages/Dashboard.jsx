@@ -5,6 +5,7 @@ import api from '../utils/api';
 import { toast } from 'react-toastify';
 import PostCard from '../components/PostCard';
 import Pagination from '../components/Pagination';
+import socket from '../services/socket';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -29,6 +30,33 @@ const Dashboard = () => {
       navigate('/login');
     }
   }, [loading, navigate, isAuthenticated]);
+
+  // establish socket connection when dashboard mounts for authenticated user
+  useEffect(() => {
+    if (!loading && isAuthenticated()) {
+      socket.connect();
+
+      socket.on('connect', () => {
+        console.log('Socket connected:', socket.id);
+      });
+
+      socket.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
+      });
+
+      socket.on('connect_error', (err) => {
+        console.error('Socket connect error:', err);
+      });
+    }
+
+    return () => {
+      // cleanup listeners and disconnect when component unmounts
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('connect_error');
+      socket.disconnect();
+    };
+  }, [loading, isAuthenticated]);
 
   // Fetch user's posts
   const fetchUserPosts = async (page = 1) => {
