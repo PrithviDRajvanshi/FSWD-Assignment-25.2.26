@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
+import hotToast from 'react-hot-toast';
 import PostCard from '../components/PostCard';
 import Pagination from '../components/Pagination';
 import socket from '../services/socket';
@@ -34,6 +35,8 @@ const Dashboard = () => {
   // establish socket connection when dashboard mounts for authenticated user
   useEffect(() => {
     if (!loading && isAuthenticated()) {
+      // ensure token is sent with handshake
+      socket.auth = { token: localStorage.getItem('token') };
       socket.connect();
 
       socket.on('connect', () => {
@@ -47,6 +50,11 @@ const Dashboard = () => {
       socket.on('connect_error', (err) => {
         console.error('Socket connect error:', err);
       });
+
+      socket.on('newPost', (data) => {
+        console.log('received newPost event', data);
+        hotToast.success('A new post was created by another user');
+      });
     }
 
     return () => {
@@ -54,6 +62,7 @@ const Dashboard = () => {
       socket.off('connect');
       socket.off('disconnect');
       socket.off('connect_error');
+      socket.off('newPost');
       socket.disconnect();
     };
   }, [loading, isAuthenticated]);

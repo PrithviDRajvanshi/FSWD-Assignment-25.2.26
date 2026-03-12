@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
@@ -74,9 +75,34 @@ const io = new Server(httpServer, {
     cors: corsOptions
 });
 
+// make io available to request handlers via app
+app.set('io', io);
+
+// authentication middleware for sockets
+io.use(async (socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (!token) {
+        return next(new Error('Authentication error: token required'));
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // look up user email for logging
+        const User = require('./models/User');
+        const user = await User.findById(decoded.id).select('email');
+        if (!user) {
+            return next(new Error('Authentication error: user not found'));
+        }
+        socket.user = { id: decoded.id, email: user.email };
+        console.log(`Socket auth user: ${user.email}`);
+        next();
+    } catch (err) {
+        return next(new Error('Authentication error'));
+    }
+});
+
 // Handle socket connections
 io.on('connection', (socket) => {
-    console.log(`Socket connected: ${socket.id}`);
+    console.log(`Socket connected: ${socket.id} (user: ${socket.user?.email || 'unknown'})`);
 
     socket.on('disconnect', (reason) => {
         console.log(`Socket disconnected: ${socket.id} (reason: ${reason})`);

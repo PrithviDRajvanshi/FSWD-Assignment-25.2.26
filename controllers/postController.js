@@ -29,6 +29,15 @@ const createPost = async (req, res, next) => {
         // Populate author details
         await post.populate("author", "name email");
 
+        // emit real-time notification to all connected clients
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('newPost', {
+                message: 'A new post has been created',
+                post,
+            });
+        }
+
         res.status(201).json({
             success: true,
             message: "Post created successfully",
