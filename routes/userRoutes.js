@@ -2,14 +2,23 @@ const express = require("express");
 const router = express.Router();
 const {
     registerUser,
+    loginUser,
     getUsers,
     getUserById,
     updateUser,
     deleteUser,
+    getMe,
 } = require("../controllers/userController");
+const { protect } = require("../middleware/authMiddleware");
 
 // POST /api/users/register - Register a new user
 router.post("/register", registerUser);
+
+// POST /api/users/login - Login a user and return JWT
+router.post("/login", loginUser);
+
+// GET /api/users/me - Get current logged-in user
+router.get("/me", protect, getMe);
 
 // GET /api/users - Get all users
 router.get("/", getUsers);
