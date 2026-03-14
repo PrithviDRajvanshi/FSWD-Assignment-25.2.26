@@ -23,4 +23,6 @@ const protect = async (req, res, next) => {
     }
 };
 
-module.exports = { protect };
+const authMiddleware = protect;
+
+module.exports = { protect, authMiddleware };

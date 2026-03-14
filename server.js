@@ -4,12 +4,14 @@ const cors = require("cors");
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
+
+// Load environment variables before importing config-dependent modules
+dotenv.config();
+
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
-
-// Load environment variables
-dotenv.config();
+const uploadRoutes = require("./routes/upload");
 
 // Connect to database
 connectDB();
@@ -34,6 +36,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Test connection endpoint
 app.get("/api/connection-test", (req, res) => {
