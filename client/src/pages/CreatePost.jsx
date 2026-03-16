@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
+import ImageUpload from '../components/ImageUpload';
 import './CreatePost.css';
 
 const CreatePost = () => {
@@ -22,6 +23,11 @@ const CreatePost = () => {
       ...prevState,
       [name]: value,
     }));
+  };
+
+  const handleUpload = (formData) => {
+    const file = formData.get('image');
+    console.log('Uploaded file in FormData:', file);
   };
 
   const handleSubmit = async (e) => {
@@ -143,6 +149,11 @@ const CreatePost = () => {
               onChange={handleChange}
               placeholder="e.g., technology, tutorial, web"
             />
+          </div>
+
+          <div className="form-group">
+            <label>Post Image (optional)</label>
+            <ImageUpload onUpload={handleUpload} />
           </div>
 
           <button
