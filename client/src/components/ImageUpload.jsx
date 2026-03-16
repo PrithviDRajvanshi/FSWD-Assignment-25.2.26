@@ -64,7 +64,9 @@ const ImageUpload = ({ onUpload }) => {
   };
 
   const handleSubmit = (event) => {
-    event.preventDefault();
+    if (event?.preventDefault) {
+      event.preventDefault();
+    }
 
     if (!selectedFile || error) {
       return;
@@ -87,7 +89,7 @@ const ImageUpload = ({ onUpload }) => {
   }, [previewUrl]);
 
   return (
-    <form className="image-upload" onSubmit={handleSubmit}>
+    <div className="image-upload">
       <div className="image-upload__input">
         <label htmlFor="image-upload-input">Select an image</label>
         <input
@@ -107,13 +109,14 @@ const ImageUpload = ({ onUpload }) => {
       )}
 
       <button
-        type="submit"
+        type="button"
         className="btn btn-primary"
         disabled={!selectedFile || Boolean(error)}
+        onClick={handleSubmit}
       >
         Upload Image
       </button>
-    </form>
+    </div>
   );
 };
 
