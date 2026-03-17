@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
 import ImageUpload from '../components/ImageUpload';
@@ -12,6 +13,10 @@ const CreatePost = () => {
     content: '',
     tags: '',
   });
+  const [coverImageUrl, setCoverImageUrl] = useState(null);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -25,9 +30,36 @@ const CreatePost = () => {
     }));
   };
 
-  const handleUpload = (formData) => {
-    const file = formData.get('image');
-    console.log('Uploaded file in FormData:', file);
+  const handleFileSelect = (file) => {
+    setSelectedImageFile(file);
+  };
+
+  const handleUpload = async (formData) => {
+    setUploadLoading(true);
+    setUploadError(null);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/api/upload', formData, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+          // Do not manually set Content-Type; let browser set boundary
+        },
+      });
+
+      if (response.data?.success) {
+        setCoverImageUrl(response.data.url || response.data.secure_url);
+        toast.success('Image uploaded successfully');
+      } else {
+        throw new Error(response.data?.message || 'Image upload failed');
+      }
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Image upload failed';
+      setUploadError(message);
+      toast.error(message);
+    } finally {
+      setUploadLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -54,12 +86,24 @@ const CreatePost = () => {
         .map((tag) => tag.trim())
         .filter((tag) => tag.length > 0);
 
-      // Submit to backend
+      // If user selected an image but did not yet upload it manually, upload now
+      if (selectedImageFile && !coverImageUrl) {
+        const pendingFormData = new FormData();
+        pendingFormData.append('image', selectedImageFile);
+        await handleUpload(pendingFormData);
+      }
+
+      if (uploadError) {
+        throw new Error(uploadError);
+      }
+
+      // Submit to backend (include coverImage if uploaded)
       const response = await api.post('/posts', {
         title,
         description,
         content,
         tags,
+        coverImage: coverImageUrl || null,
       });
 
       if (response.status === 201) {
@@ -70,6 +114,9 @@ const CreatePost = () => {
           content: '',
           tags: '',
         });
+        setCoverImageUrl(null);
+        setSelectedImageFile(null);
+        setUploadError(null);
 
         // Redirect to dashboard after 2 seconds
         setTimeout(() => {
@@ -153,7 +200,12 @@ const CreatePost = () => {
 
           <div className="form-group">
             <label>Post Image (optional)</label>
-            <ImageUpload onUpload={handleUpload} />
+            <ImageUpload onUpload={handleUpload} onFileSelect={handleFileSelect} />
+            {uploadLoading && <p className="info-text">Uploading image...</p>}
+            {coverImageUrl && !uploadError && (
+              <p className="info-text">Image uploaded and ready: {coverImageUrl}</p>
+            )}
+            {uploadError && <p className="alert alert-error">{uploadError}</p>}
           </div>
 
           <button
