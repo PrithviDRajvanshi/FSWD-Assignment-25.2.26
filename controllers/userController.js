@@ -6,7 +6,7 @@ const ErrorResponse = require("../utils/errorResponse");
 
 // @desc    Register a new user
 // @route   POST /api/users/register
-const registerUser = async (req, res) => {
+const registerUser = async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
 
