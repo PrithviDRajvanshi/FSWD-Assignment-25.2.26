@@ -1,0 +1,125 @@
+.connection-test-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.status-card {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.status-card h2 {
+  color: #333;
+  margin-bottom: 30px;
+  font-size: 24px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.status-badge.loading {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.message {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.response-data {
+  background-color: #f8f9fa;
+  border-left: 4px solid #28a745;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.response-data h3 {
+  color: #28a745;
+  margin-top: 0;
+  font-size: 16px;
+}
+
+.response-data pre {
+  background-color: #e8f5e9;
+  padding: 15px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 14px;
+  color: #1b5e20;
+}
+
+.error-details {
+  background-color: #f8d7da;
+  border-left: 4px solid #dc3545;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.error-details h3 {
+  color: #721c24;
+  margin-top: 0;
+  font-size: 16px;
+}
+
+.error-details p {
+  color: #721c24;
+  margin: 0;
+  font-family: monospace;
+  background-color: #f5e6e8;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.retry-btn {
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.retry-btn:hover {
+  background-color: #5568d3;
+}
+
+.retry-btn:active {
+  transform: scale(0.98);
+}
