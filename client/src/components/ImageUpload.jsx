@@ -9,7 +9,7 @@ const ALLOWED_MIME_TYPES = [
   'image/gif',
 ];
 
-const ImageUpload = ({ onUpload }) => {
+const ImageUpload = ({ onUpload, onFileSelect }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [error, setError] = useState('');
@@ -35,6 +35,9 @@ const ImageUpload = ({ onUpload }) => {
 
     if (!file) {
       setSelectedFile(null);
+      if (typeof onFileSelect === 'function') {
+        onFileSelect(null);
+      }
       setPreviewUrl('');
       setError('');
       return;
@@ -47,7 +50,11 @@ const ImageUpload = ({ onUpload }) => {
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
+      // Clear selected file for parent state when invalid or removed
       setSelectedFile(null);
+      if (typeof onFileSelect === 'function') {
+        onFileSelect(null);
+      }
       setPreviewUrl('');
       setError(validationError);
       return;
@@ -55,6 +62,9 @@ const ImageUpload = ({ onUpload }) => {
 
     setError('');
     setSelectedFile(file);
+    if (typeof onFileSelect === 'function') {
+      onFileSelect(file);
+    }
 
     const objectUrl = URL.createObjectURL(file);
     if (previewUrl) {

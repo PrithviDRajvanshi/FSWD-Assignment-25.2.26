@@ -32,6 +32,10 @@ const postSchema = new mongoose.Schema(
                 trim: true,
             },
         ],
+        coverImage: {
+            type: String,
+            default: null,
+        },
     },
     {
         timestamps: true,

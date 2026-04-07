@@ -225,13 +225,23 @@ const Dashboard = () => {
 
             <div className="posts-list">
               {posts.map((post) => (
-                <PostCard
-                  key={post._id}
-                  post={post}
-                  currentUser={user}
-                  onDelete={handleDeletePost}
-                  onEdit={handleEditPost}
-                />
+                <div key={post._id} className="post-item">
+                  {post.coverImage && (
+                    <div className="post-cover-image-wrapper">
+                      <img
+                        src={post.coverImage}
+                        alt={`Cover image for ${post.title}`}
+                        className="post-cover-image"
+                      />
+                    </div>
+                  )}
+                  <PostCard
+                    post={post}
+                    currentUser={user}
+                    onDelete={handleDeletePost}
+                    onEdit={handleEditPost}
+                  />
+                </div>
               ))}
             </div>
 

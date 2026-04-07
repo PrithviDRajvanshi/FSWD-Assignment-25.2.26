@@ -1,118 +1,69 @@
-const express = require("express");
 const dotenv = require("dotenv");
-const cors = require("cors");
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const jwt = require('jsonwebtoken');
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
 
-// Load environment variables before importing config-dependent modules
 dotenv.config();
 
-const connectDB = require("./config/db");
-const userRoutes = require("./routes/userRoutes");
-const postRoutes = require("./routes/postRoutes");
-const uploadRoutes = require("./routes/upload");
-
-// Connect to database
-connectDB();
-
-// Initialize Express
-const app = express();
+const { connectDB } = require("./config/db");
+const app = require("./app");
 
 // Port definition
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-// Configure CORS with CLIENT_URL from environment variables
-const corsOptions = {
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-    optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Routes
-app.use("/api/users", userRoutes);
-app.use("/api/posts", postRoutes);
-app.use("/api/upload", uploadRoutes);
-
-// Test connection endpoint
-app.get("/api/connection-test", (req, res) => {
-    res.json({
-        success: true,
-        message: "Frontend-Backend connection is working!",
-        timestamp: new Date().toISOString(),
-        serverPort: PORT,
-        clientUrl: process.env.CLIENT_URL
-    });
-});
-
-// Root route
-app.get("/", (req, res) => {
-    res.json({ message: "Welcome to the Creator's Platform API" });
-});
-
-// Route used to intentionally trigger an error for demonstration
-app.get("/api/test-error", (req, res, next) => {
-    const err = new Error("Intentional test error");
-    err.statusCode = 400;
-    next(err);
-});
-
-// global error handler (must come after all routes)
-app.use((err, req, res, next) => {
-    // log for debugging, but don't expose stack to client
-    console.error(err.stack);
-    const statusCode = err.statusCode || 500;
-    const message = err.message || "Server Error";
-    res.status(statusCode).json({ success: false, message });
-});
-
 // Create HTTP server and integrate Socket.io
 const httpServer = createServer(app);
 
-// re-use the same CORS options from Express for socket.io
+// Re-use the same CORS options from Express for socket.io
+const corsOptions = {
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+    optionsSuccessStatus: 200,
+};
+
 const io = new Server(httpServer, {
-    cors: corsOptions
+    cors: corsOptions,
 });
 
-// make io available to request handlers via app
-app.set('io', io);
+// Make io available to request handlers via app
+app.set("io", io);
 
 // authentication middleware for sockets
 io.use(async (socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) {
-        return next(new Error('Authentication error: token required'));
+        return next(new Error("Authentication error: token required"));
     }
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // look up user email for logging
-        const User = require('./models/User');
-        const user = await User.findById(decoded.id).select('email');
+        const User = require("./models/User");
+        const user = await User.findById(decoded.id).select("email");
         if (!user) {
-            return next(new Error('Authentication error: user not found'));
+            return next(new Error("Authentication error: user not found"));
         }
         socket.user = { id: decoded.id, email: user.email };
-        console.log(`Socket auth user: ${user.email}`);
         next();
     } catch (err) {
-        return next(new Error('Authentication error'));
+        return next(new Error("Authentication error"));
     }
 });
 
 // Handle socket connections
-io.on('connection', (socket) => {
-    console.log(`Socket connected: ${socket.id} (user: ${socket.user?.email || 'unknown'})`);
-
-    socket.on('disconnect', (reason) => {
+io.on("connection", (socket) => {
+    console.log(`Socket connected: ${socket.id} (user: ${socket.user?.email || "unknown"})`);
+    socket.on("disconnect", (reason) => {
         console.log(`Socket disconnected: ${socket.id} (reason: ${reason})`);
     });
 });
 
-// Start HTTP server (replaces app.listen)
-httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// Start HTTP server only after the database is connected
+connectDB()
+    .then(() => {
+        httpServer.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    })
+    .catch((error) => {
+        console.error(`Database connection failed: ${error.message}`);
+        process.exit(1);
+    });

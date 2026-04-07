@@ -7,7 +7,7 @@ const ErrorResponse = require("../utils/errorResponse");
 // @access  Private (requires authentication)
 const createPost = async (req, res, next) => {
     try {
-        const { title, description, content, tags } = req.body;
+        const { title, description, content, tags, coverImage } = req.body;
 
         // Validate required fields
         if (!title || !description || !content) {
@@ -24,6 +24,7 @@ const createPost = async (req, res, next) => {
             content,
             author: userId,
             tags: tags || [],
+            coverImage: coverImage || null,
         });
 
         // Populate author details
