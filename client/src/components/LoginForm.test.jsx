@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import LoginForm from './LoginForm';
 
 describe('LoginForm', () => {
-  test('allows a user to type an email and password', async () => {
+  it('allows a user to type an email and password', async () => {
     const user = userEvent.setup();
     const handleSubmit = jest.fn();
 
@@ -20,7 +20,7 @@ describe('LoginForm', () => {
     expect(passwordInput).toHaveValue('super-secret-password');
   });
 
-  test('submits the typed credentials on the happy path', async () => {
+  it('submits the typed credentials on the happy path', async () => {
     const user = userEvent.setup();
     const handleSubmit = jest.fn();
 
@@ -38,7 +38,7 @@ describe('LoginForm', () => {
     });
   });
 
-  test('shows a validation error and does not submit when fields are empty', async () => {
+  it('shows a validation error and does not submit when fields are empty', async () => {
     const user = userEvent.setup();
     const handleSubmit = jest.fn();
 
