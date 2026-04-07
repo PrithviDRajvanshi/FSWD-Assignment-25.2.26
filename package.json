@@ -9,9 +9,6 @@
     "test": "jest --runInBand"
   },
   "keywords": [],
-  "jest": {
-    "testEnvironment": "node"
-  },
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -27,7 +24,14 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.29.2",
+    "@babel/preset-react": "^7.28.5",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "identity-obj-proxy": "^3.0.0",
     "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
     "nodemon": "^3.1.14",
     "supertest": "^7.2.2"
   }
