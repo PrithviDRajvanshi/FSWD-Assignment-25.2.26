@@ -1,23 +1,12 @@
 const mongoose = require("mongoose");
 
-const getMongoUri = () => {
-  if (process.env.NODE_ENV === "test") {
-    return (
-      process.env.MONGODB_URI_TEST ||
-      process.env.MONGO_URI_TEST ||
-      process.env.MONGODB_URI ||
-      process.env.MONGO_URI
-    );
-  }
-
-  return process.env.MONGODB_URI || process.env.MONGO_URI;
-};
+const getMongoUri = () => process.env.DATABASE_URL;
 
 const connectDB = async () => {
   const mongoURI = getMongoUri();
 
   if (!mongoURI) {
-    throw new Error("MongoDB URI is not defined");
+    throw new Error("DATABASE_URL is not defined");
   }
 
   if (mongoose.connection.readyState === 1) {

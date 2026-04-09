@@ -1,7 +1,8 @@
 import { io } from 'socket.io-client';
 
-// You can adjust this to use an environment variable if desired
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+const apiUrl = import.meta.env.VITE_API_URL;
+const fallbackServerUrl = apiUrl ? apiUrl.replace(/\/api\/?$/, '') : window.location.origin;
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || fallbackServerUrl;
 
 // create a singleton socket instance; autoConnect is disabled so user code controls when to connect
 // initial auth token (may be null); updated before connect in components

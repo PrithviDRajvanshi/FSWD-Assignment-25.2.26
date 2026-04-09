@@ -1,8 +1,8 @@
 process.env.NODE_ENV = "test";
 
 const request = require("supertest");
-const app = require("../app");
-const { connectDB, clearDatabase, disconnectDB } = require("../config/db");
+const app = require("../src/app");
+const { connectDB, clearDatabase, disconnectDB } = require("../src/config/db");
 
 beforeAll(async () => {
   await connectDB();
