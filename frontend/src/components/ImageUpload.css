@@ -1,0 +1,23 @@
+.image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.image-upload__input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.image-upload__preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.image-upload__error {
+  color: #b00020;
+  font-size: 0.9rem;
+}
